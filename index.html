@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- SEO 基础标签 -->
+    <title>Tetris - Classic Puzzle Game | Desktop Version</title>
+    <meta name="description" content="Play the classic Tetris game for free online. Supports keyboard controls, high score leaderboard, and multiple difficulty levels. No download required, play instantly!">
+    <meta name="keywords" content="tetris,block game,puzzle game,casual game,online game,free game,HTML5 game,browser game">
+    <meta name="author" content="Tetris Development Team">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph 标签 (用于社交媒体分享) -->
+    <meta property="og:title" content="Tetris - Classic Puzzle Game">
+    <meta property="og:description" content="Play the classic Tetris game for free online. Supports keyboard controls, high score leaderboard, and multiple difficulty levels. No download required, play instantly!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://onlinetetris.org/">
+    <meta property="og:image" content="images/tetris-preview.jpg">
+    <meta property="og:site_name" content="Tetris Game">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter 卡片标签 -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tetris - Classic Puzzle Game">
+    <meta name="twitter:description" content="Play the classic Tetris game for free online. Supports keyboard controls, high score leaderboard, and multiple difficulty levels. No download required, play instantly!">
+    <meta name="twitter:image" content="https://onlinetetris.org/assets/images/tetris-preview.jpg">
+
+    <!-- 规范链接和网站地图 -->
+    <link rel="canonical" href="https://onlinetetris.org/">
+    <link rel="sitemap" type="application/xml" href="https://onlinetetris.org/sitemap.xml">
+
+    <!-- 移动设备图标 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+      body {
+        /* overflow-x: hidden; */
+        touch-action: manipulation;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      canvas {
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      * {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+    </style>
+
+
+    <script>
+      if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+        // 如果不是本地开发环境，禁用 console.log
+        console.log = function () {};
+      }
+
+      // 检测设备类型并重定向
+      if (window.innerWidth <= 480) {
+        window.location.href = "mobile.html";
+      }
+
+      // 禁止双击缩放和多点触控
+      document.addEventListener(
+        "touchstart",
+        function (event) {
+          if (event.touches.length > 1) {
+            event.preventDefault();
+          }
+        },
+        { passive: false }
+      );
+
+      let lastTouchEnd = 0;
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        { passive: false }
+      );
+
+      // 禁止所有触摸事件的默认行为
+      document.addEventListener(
+        "gesturestart",
+        function (event) {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+
+      document.addEventListener(
+        "gesturechange",
+        function (event) {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+
+      document.addEventListener(
+        "gestureend",
+        function (event) {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+    </script>
+  </head>
+
+  <body>
+    <div class="base-wrapper">
+      <div class="base-content">
+        <!-- 游戏标题 -->
+        <header class="game-header">
+          <h1 data-i18n="gameTitle">Tetris</h1>
+          <div class="game-settings">
+            <!-- 语言切换按钮 -->
+            <div class="language-dropdown">
+              <button class="btn icon-btn lang-flag-icon" title="Switch Language">
+                🇺🇸
+              </button>
+              <div class="language-dropdown-content">
+                <button data-lang="en" class="lang-option">English 🇺🇸</button>
+                <button data-lang="zh" class="lang-option">中文 🇨🇳</button>
+              </div>
+            </div>
+            <button id="commentScrollBtn" class="btn icon-btn" title="查看评论">
+              <span class="material-icons">comment</span>
+            </button>
+            <button id="pauseBtn" class="btn icon-btn" title="暂停">
+              <span class="material-icons">play_arrow</span>
+            </button>
+            <button id="musicToggle" class="btn icon-btn" title="Background Music">
+              <span class="material-icons">music_note</span>
+            </button>
+            <button id="soundToggle" class="btn icon-btn" title="Sound Effects">
+              <span class="material-icons">volume_up</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- 游戏主容器 -->
+        <div class="game-container">
+          <!-- 左侧信息区 -->
+          <aside class="game-sidebar left">
+            <div class="sidebar-content">
+              <div class="panel score-panel">
+                <div class="score-grid">
+                  <div class="score-item">
+                    <h3 data-i18n="time">Time</h3>
+                    <div id="time" class="value">00:00</div>
+                  </div>
+                  <div class="score-item">
+                    <h3 data-i18n="highScore">High Score</h3>
+                    <div id="highScore" class="value">0</div>
+                  </div>
+                  <div class="score-item">
+                    <h3 data-i18n="score">Score</h3>
+                    <div id="score" class="value score-roll">0</div>
+                  </div>
+                  <div class="score-item">
+                    <h3 data-i18n="level">Level</h3>
+                    <div id="level" class="value">1</div>
+                  </div>
+                  <div class="score-item">
+                    <h3 data-i18n="speed">Speed</h3>
+                    <div id="speed" class="value">1.0x</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- 游戏主画布 -->
+          <main class="game-main">
+            <div class="canvas-wrapper">
+              <div class="canvas-container">
+                <canvas id="gameCanvas"></canvas>
+              </div>
+              <div class="game-controls">
+                <button id="restartBtn" class="btn" style="visibility: hidden; display: none" disabled="" data-i18n="restartBtn">
+                  Restart
+                </button>
+                <button id="startBtn" class="btn" style="visibility: hidden; display: none" disabled="" data-i18n="startBtn">
+                  Start Game
+                </button>
+              </div>
+            </div>
+          </main>
+
+          <!-- 右侧信息区 -->
+          <aside class="game-sidebar right">
+            <div class="sidebar-content">
+              <div class="panel preview-panel">
+                <h3 data-i18n="nextBlock">Next Block</h3>
+                <div class="preview-container">
+                  <canvas id="nextCanvas"></canvas>
+                </div>
+              </div>
+              <div class="panel controls-panel">
+                <h3 data-i18n="controls">Controls</h3>
+                <div class="controls-list">
+                  <div class="control-item">
+                    <span class="key">←→</span>
+                    <span class="desc" data-i18n="moveLeft">Move Left/Right</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key">↑</span>
+                    <span class="desc" data-i18n="rotate">Rotate</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key">↓</span>
+                    <span class="desc" data-i18n="moveDown">Move Down</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key">Space</span>
+                    <span class="desc" data-i18n="hardDrop">Hard Drop</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key">P</span>
+                    <span class="desc" data-i18n="pauseGame">Pause Game</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="panel scoring-rules-panel">
+          <h3 data-i18n="scoringRules">积分规则</h3>
+          <div class="rules-list">
+            <div class="rule-item">
+              <div class="rule-title" data-i18n="linesCleared">消除行数</div>
+              <div class="rule-desc" data-i18n="line1">
+                1行：10分 × 当前等级
+              </div>
+              <div class="rule-desc" data-i18n="line2">
+                2行：30分 × 当前等级
+              </div>
+              <div class="rule-desc" data-i18n="line3">
+                3行：50分 × 当前等级
+              </div>
+              <div class="rule-desc" data-i18n="line4">
+                4行：60分 × 当前等级
+              </div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-title" data-i18n="gameDifficulty">游戏难度</div>
+              <div class="rule-desc" data-i18n="standardModeRule">
+                标准模式：速度每级+10%
+              </div>
+              <div class="rule-desc" data-i18n="crazyModeRule">
+                疯狂模式：速度每级+15%
+              </div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-title" data-i18n="levelUp">等级提升</div>
+              <div class="rule-desc" data-i18n="levelUpRule">
+                每100分提升一级
+              </div>
+              <div class="rule-desc" data-i18n="speedUp">
+                等级越高，下落速度越快
+              </div>
+            </div>
+          </div>
+        </div>
+
+   
+    <!-- 游戏结束弹窗 -->
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+        <h2 id="gameOverTitle" data-i18n="gameOver">Game Over</h2>
+        <p>
+          <span data-i18n="yourScore">Your Score</span>:
+          <span id="finalScore">0</span>
+        </p>
+        <p>
+          <span data-i18n="highScore">High Score</span>:
+          <span id="finalHighScore">0</span>
+        </p>
+        <p>
+          <span data-i18n="gameTime">Game Time</span>:
+          <span id="finalTime">00:00</span>
+        </p>
+        <div class="modal-buttons">
+          <button id="restartGameBtn" class="btn restart-btn" data-i18n="restartBtn">
+            Restart
+          </button>
+          <button id="returnToModeSelectBtn" class="btn back-btn" data-i18n="backBtn">
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 引入 Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- JavaScript 文件 -->
+    <script src="js/utils.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/tetromino.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/game.js"></script>
+
+</body>
+</html>
