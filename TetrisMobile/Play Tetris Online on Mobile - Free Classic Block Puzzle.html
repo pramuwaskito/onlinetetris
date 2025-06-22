@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!-- saved from url=(0038)https://onlinetetris.org/tetris-mobile -->
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Play Tetris Online on Mobile - Free Classic Block Puzzle</title>
+    <meta name="description" content="Play Tetris Online mobile for free! Best free tetris mobile browser game with touch controls for smartphones and tablets. Play anywhere instantly!">
+    <meta name="keywords" content="tetris mobile, play tetris online, mobile tetris game, free tetris app, tetris game">
+    <meta name="author" content="Tetris Development Team">
+    <meta name="robots" content="index, follow">
+    <link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="mobile-mods.css">
+
+    <script src="./js/utils.js"></script>
+    <script src="./js/i18n.js"></script>
+    <script src="./js/tetromino.js"></script>
+    <script src="./js/board.js"></script>
+    <script src="./js/game.js"></script>
+
+
+ </head>
+
+  <body>
+
+
+    <div class="game-wrapper mobile">
+      <div class="score-grid" style="width: 50px">
+        <div class="score-item">
+          <h2 style="margin-bottom: 5px" data-i18n="nextBlock">Next Block</h2>
+          <div class="preview-container">
+            <canvas id="nextCanvas" width="105" height="105"></canvas>
+          </div>
+        </div>
+        <div class="score-item">
+          <h2 style="margin-bottom: 5px" data-i18n="time">Time</h2>
+          <div id="time" class="value">00:00</div>
+        </div>
+        <div class="score-item">
+          <h2 style="margin-bottom: 5px" data-i18n="highScore">High Score</h2>
+          <div id="highScore" class="value">0</div>
+        </div>
+        <div class="score-item">
+          <h2 style="margin-bottom: 5px" data-i18n="score">Score</h2>
+          <div id="score" class="value score-roll">0</div>
+        </div>
+        <div class="score-item">
+          <h2 data-i18n="level">Level</h2>
+          <div id="level" class="value">1</div>
+        </div>
+        <div class="score-item">
+          <h2 data-i18n="speed">Speed</h2>
+          <div id="speed" class="value">1.0x</div>
+        </div>
+      </div>
+      <!-- 中间游戏区域 -->
+      <div class="mobile-game-main">
+        <div class="canvas-container" style="">
+          <canvas id="gameCanvas" style="touch-action: none; background-color: var(--panel-bg); cursor: default;" class="" width="300" height="600"></canvas>
+        </div>
+      </div>
+      <div class="audio-controls" style="width: 40px; display: flex; flex-direction: column; gap: 15px">
+        <!-- 增加一个首页按钮 -->
+        <button class="btn icon-btn small-icon" title="home" onclick="window.location.href=&#39;/&#39;">
+          <span class="material-icons" style="font-size: 20px">home</span>
+        </button>
+        <!-- 增加一个排行榜 -->
+        <a title="Leaderboard" href="https://onlinetetris.org/leaderboard.html" class="btn icon-btn small-icon">
+          <span class="material-icons" style="font-size: 18px">leaderboard</span>
+        </a>
+        <!-- 语言切换按钮 -->
+        <div class="language-dropdown mobile-lang-dropdown">
+          <button class="btn icon-btn small-icon lang-flag-icon" title="中文">🇺🇸</button>
+          <div class="language-dropdown-content">
+            <button data-lang="en" class="lang-option">English 🇺🇸</button>
+            <button data-lang="zh" class="lang-option">中文 🇨🇳</button>
+          </div>
+        </div>
+
+        <!-- 添加音频控制按钮 -->
+
+        <button id="musicToggle" class="btn icon-btn small-icon" title="背景音乐">
+          <span class="material-icons" style="font-size: 18px; opacity: 1;">music_note</span>
+        </button>
+        <button id="soundToggle" class="btn icon-btn small-icon" title="音效">
+          <span class="material-icons" style="font-size: 18px; opacity: 1;">volume_up</span>
+        </button>
+        <button id="pauseBtn" class="btn icon-btn small-icon" title="开始游戏">
+          <span class="material-icons" style="font-size: 18px">play_arrow</span>
+        </button>
+        <button id="commentScrollBtn" class="btn icon-btn small-icon" title="查看评论">
+          <span class="material-icons" style="font-size: 18px">comment</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- 底部控制区域 -->
+    <div class="mobile-controls-area" style="display: flex;">
+      <!-- 方向控制按钮 -->
+      <div class="mobile-controls">
+        <button id="leftBtn" class="mobile-btn" data-title-i18n="moveLeft" title="Move Left/Right">
+          ←
+        </button>
+        <button id="rightBtn" class="mobile-btn" data-title-i18n="moveRight" title="Move Right">
+          →
+        </button>
+        <button id="downBtn" class="mobile-btn" data-title-i18n="moveDown" title="Move Down">
+          ↓
+        </button>
+        <button id="rotateBtn" class="mobile-btn" data-title-i18n="rotate" title="Rotate">
+          ↺
+        </button>
+        <button id="dropBtn" class="mobile-btn" data-title-i18n="hardDrop" title="Hard Drop">
+          ⇊
+        </button>
+      </div>
+    </div>
+
+
+    <!-- 游戏控制按钮 -->
+    <div class="game-controls" style="display: none">
+      <button id="startBtn" class="btn primary" data-i18n="startBtn" data-codelab="11">startBtn</button>
+      <button id="restartBtn" class="btn" disabled="" style="display: none" data-i18n="restartBtn">Restart</button>
+    </div>
+
+
+
+    <!-- 游戏结束弹窗 -->
+    <div id="gameOverModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span id="gameOverTitle" style="font-size: 2rem; font-weight: bold">
+            Game Over
+          </span>
+          <div class="game-stats">
+            <div class="stat-item">
+              <span class="stat-label">Time</span>
+              <span id="finalTime" class="stat-value">-</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Level</span>
+              <span id="finalLevel" class="stat-value">-</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Lines</span>
+              <span id="finalLines" class="stat-value">-</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">High Score</span>
+              <span id="finalHighScore" class="stat-value">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="share-achievement">
+          <div class="achievement-header">
+            <span class="achievement-icon">🏆</span>
+            <h2>Congratulations!</h2>
+          </div>
+          <p class="achievement-text">
+            You scored
+            <span id="finalScore" class="highlight-score">0</span> points!
+          </p>
+          <p class="achievement-subtext">
+            This score is better than
+            <span id="finalScorePercentage" class="highlight-text">90%</span> of
+            players!
+          </p>
+          
+
+        <div class="modal-buttons-bt">
+          <button id="restartGameBtn" class="action-btn restart">
+            <span>Play Again</span>
+          </button>
+          <button id="returnToModeSelectBtn" class="action-btn home">
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+   
+</body>
+</html>
